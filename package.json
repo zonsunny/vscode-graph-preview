@@ -1,0 +1,61 @@
+{
+  "name": "graph-preview",
+  "displayName": "Graph Preview",
+  "description": "Real-time preview for Mermaid, Graphviz DOT and PlantUML diagrams in VSCode",
+  "version": "0.1.0",
+  "publisher": "zon",
+  "license": "MIT",
+  "keywords": ["mermaid", "graphviz", "plantuml", "diagram", "preview", "ai"],
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Visualization", "Programming Languages"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "graph-preview.openPanel",
+        "title": "Graph Preview: Open Preview Panel"
+      },
+      {
+        "command": "graph-preview.renderFromClipboard",
+        "title": "Graph Preview: Render from Clipboard"
+      }
+    ],
+    "configuration": {
+      "title": "Graph Preview",
+      "properties": {
+        "graph-preview.autoOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open preview panel when a graph code block is detected"
+        },
+        "graph-preview.watchClipboard": {
+          "type": "boolean",
+          "default": true,
+          "description": "Watch clipboard for graph code blocks"
+        },
+        "graph-preview.debounceDelay": {
+          "type": "number",
+          "default": 300,
+          "description": "Debounce delay (ms) for re-detecting code blocks"
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@viz-js/viz": "^3.2.0",
+    "mermaid": "^11.0.0",
+    "plantuml-encoder": "^1.4.0"
+  }
+}
