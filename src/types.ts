@@ -50,7 +50,31 @@ export interface ExportMessage {
   data: string;
 }
 
-export type WebviewMessage = ReadyMessage | RenderedMessage | ExportMessage;
+export interface DisableClipboardMessage {
+  type: 'disableClipboard';
+}
+
+export interface ShowEmptyMessage {
+  type: 'showEmpty';
+}
+
+export interface ShowErrorMessage {
+  type: 'showError';
+  message: string;
+}
+
+export interface LanguageSelectMessage {
+  type: 'languageSelect';
+  candidates: GraphLanguage[];
+  code: string;
+}
+
+export interface ClipboardStateChangedMessage {
+  type: 'clipboardStateChanged';
+  enabled: boolean;
+}
+
+export type WebviewMessage = ReadyMessage | RenderedMessage | ExportMessage | DisableClipboardMessage;
 export type ExtensionMessage = RenderMessage | ConfigMessage;
 
 export interface ExtensionConfig {
