@@ -326,6 +326,35 @@
       case 'exportPNG':
         exportPNG();
         break;
+
+      case 'setBlocks':
+        showBlockList(message.blocks);
+        break;
     }
   });
+
+  // Block list management
+  function showBlockList(blocks) {
+    const blockList = $('block-list');
+    if (!blockList) return;
+
+    if (blocks.length <= 1) {
+      blockList.classList.add('hidden');
+      return;
+    }
+
+    blockList.innerHTML = '';
+    blockList.classList.remove('hidden');
+
+    blocks.forEach((block, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'block-btn';
+      btn.textContent = `${index + 1}. ${block.language}`;
+      btn.title = block.preview;
+      btn.addEventListener('click', () => {
+        vscode.postMessage({ type: 'selectBlock', index });
+      });
+      blockList.appendChild(btn);
+    });
+  }
 })();

@@ -83,6 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (blocks.length > 0 && config.autoOpen) {
       previewPanel.show();
+      previewPanel.setBlocks(blocks);
       previewPanel.render(blocks[0]);
     } else if (blocks.length === 0) {
       previewPanel.showEmpty();
@@ -117,6 +118,11 @@ export function activate(context: vscode.ExtensionContext) {
     switch (message.type) {
       case 'languageSelected':
         // Handle language selection from webview
+        break;
+
+      case 'selectBlock':
+        const blocks = editorWatcher.getBlocks();
+        previewPanel.renderBlockByIndex(message.index, blocks);
         break;
 
       case 'exportSVG':

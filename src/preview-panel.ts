@@ -96,6 +96,23 @@ export class PreviewPanel {
     });
   }
 
+  public setBlocks(blocks: GraphBlock[]): void {
+    this.panel?.webview.postMessage({
+      type: 'setBlocks',
+      blocks: blocks.map(b => ({
+        id: b.id,
+        language: b.language,
+        preview: b.code.slice(0, 50) + '...',
+      })),
+    });
+  }
+
+  public renderBlockByIndex(index: number, blocks: GraphBlock[]): void {
+    if (index >= 0 && index < blocks.length) {
+      this.render(blocks[index]);
+    }
+  }
+
   public updateClipboardState(enabled: boolean): void {
     this.clipboardWatching = enabled;
     this.panel?.webview.postMessage({
@@ -200,6 +217,7 @@ export class PreviewPanel {
     <div id="language-buttons"></div>
   </div>
 
+  <div id="block-list" class="hidden"></div>
   <div id="content" class="content hidden"></div>
 
   <script src="${mermaidUri}"></script>
