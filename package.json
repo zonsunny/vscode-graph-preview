@@ -1,9 +1,9 @@
 {
-  "name": "graph-preview",
-  "displayName": "Graph Preview",
+  "name": "aichat-diagram-copy-preview",
+  "displayName": "AIChat Diagram Copy Preview",
   "description": "Real-time preview for Mermaid, Graphviz DOT and PlantUML diagrams in VSCode",
   "version": "0.1.0",
-  "publisher": "zon",
+  "publisher": "Zonsun",
   "license": "MIT",
     "repository": {
     "type": "git",
