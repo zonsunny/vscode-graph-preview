@@ -31,8 +31,21 @@ export function isValidMermaid(code: string): boolean {
 }
 
 export function isValidDot(code: string): boolean {
-  return /^(strict\s+)?(digraph|graph|subgraph)\b/m.test(code)
-      || /->|--/.test(code);
+  // Must have graph/digraph/subgraph keyword, or edge definitions
+  // Edge definitions in DOT: a -> b or a -- b (not ->> or -->> which are Mermaid)
+  if (/^(strict\s+)?(digraph|graph|subgraph)\b/m.test(code)) {
+    return true;
+  }
+  // Check for DOT-style edges (-> or -- but not ->> or -->>)
+  // DOT edges: a -> b; a -- b;
+  // Mermaid edges: a ->> b; a -->> b; a -->> b;
+  if (/\s->\s/.test(code) && !/->>/.test(code)) {
+    return true;
+  }
+  if (/\s--\s/.test(code) && !/-->>/.test(code)) {
+    return true;
+  }
+  return false;
 }
 
 export function isValidPlantUml(code: string): boolean {
