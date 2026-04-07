@@ -237,14 +237,8 @@
     // Check for img element (PlantUML)
     const img = content.querySelector('img');
     if (img && img.src) {
-      // For PlantUML, fetch the SVG from the server
-      try {
-        const response = await fetch(img.src);
-        const svgText = await response.text();
-        vscode.postMessage({ type: 'exportSVG', data: svgText });
-      } catch (err) {
-        vscode.postMessage({ type: 'exportError', error: 'Failed to fetch PlantUML SVG: ' + err.message });
-      }
+      // For PlantUML, send URL to backend to fetch (avoids CORS)
+      vscode.postMessage({ type: 'exportPlantUMLSVG', url: img.src });
       return;
     }
 

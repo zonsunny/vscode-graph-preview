@@ -4,7 +4,6 @@ import * as fs from 'fs/promises';
 import { PreviewPanel } from './preview-panel';
 import { EditorWatcher } from './editor-watcher';
 import { ClipboardWatcher } from './clipboard-watcher';
-import { GraphHoverProvider } from './hover-provider';
 import { GraphCodeLensProvider } from './codelens-provider';
 import { detectClipboardContent } from './detector';
 import { getConfig } from './config';
@@ -112,15 +111,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  // Register hover provider
-  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
-    [
-      { language: 'markdown', scheme: '*' },
-      { language: 'plaintext', scheme: '*' },
-    ],
-    new GraphHoverProvider(previewPanel)
-  );
-
   // Register CodeLens provider
   const codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
     [
@@ -178,6 +168,24 @@ export function activate(context: vscode.ExtensionContext) {
 
       case 'exportPNG':
         await saveFile(message.data, 'png');
+        break;
+
+      case 'exportPlantUMLSVG':
+        // Fetch PlantUML SVG from server (avoids CORS in webview)
+        try {
+          const https = await import('https');
+          const svgData = await new Promise<string>((resolve, reject) => {
+            https.get(message.url, (res) => {
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => resolve(data));
+              res.on('error', reject);
+            }).on('error', reject);
+          });
+          await saveFile(svgData, 'svg');
+        } catch (err: any) {
+          vscode.window.showErrorMessage(`Failed to fetch PlantUML SVG: ${err.message}`);
+        }
         break;
 
       case 'exportError':
@@ -238,7 +246,6 @@ export function activate(context: vscode.ExtensionContext) {
     exportSVGCommand,
     exportPNGCommand,
     renderFromClipboardCommand,
-    hoverProviderDisposable,
     codeLensProviderDisposable,
     previewPanel,
     editorWatcher,

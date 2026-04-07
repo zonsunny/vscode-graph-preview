@@ -74,7 +74,12 @@ export interface ClipboardStateChangedMessage {
   enabled: boolean;
 }
 
-export type WebviewMessage = ReadyMessage | RenderedMessage | ExportMessage | DisableClipboardMessage;
+export interface SelectBlockMessage {
+  type: 'selectBlock';
+  index: number;
+}
+
+export type WebviewMessage = ReadyMessage | RenderedMessage | ExportMessage | DisableClipboardMessage | SelectBlockMessage;
 export type ExtensionMessage = RenderMessage | ConfigMessage;
 
 export interface ExtensionConfig {

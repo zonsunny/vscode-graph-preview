@@ -10,6 +10,7 @@ export class PreviewPanel {
   private disposables: vscode.Disposable[] = [];
   private onMessageCallback?: (message: WebviewMessage) => void;
   private currentBlock: GraphBlock | null = null;
+  private currentBlocks: GraphBlock[] = [];
   private clipboardWatching = true;
 
   constructor(extensionUri: vscode.Uri) {
@@ -97,6 +98,7 @@ export class PreviewPanel {
   }
 
   public setBlocks(blocks: GraphBlock[]): void {
+    this.currentBlocks = blocks;
     this.panel?.webview.postMessage({
       type: 'setBlocks',
       blocks: blocks.map(b => ({
@@ -155,6 +157,12 @@ export class PreviewPanel {
       case 'disableClipboard':
         this.clipboardWatching = false;
         this.updateClipboardState(false);
+        break;
+
+      case 'selectBlock':
+        if (typeof message.index === 'number' && this.currentBlocks[message.index]) {
+          this.render(this.currentBlocks[message.index]);
+        }
         break;
     }
 
