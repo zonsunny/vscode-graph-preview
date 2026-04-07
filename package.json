@@ -5,10 +5,14 @@
   "version": "0.1.0",
   "publisher": "zon",
   "license": "MIT",
-  "repository": {
+    "repository": {
     "type": "git",
-    "url": "https://github.com/zonsun/vscode-graph-preview"
+    "url": "https://github.com/zonsunny/vscode-graph-preview"
   },
+  "bugs": {
+    "url": "https://github.com/zonsunny/vscode-graph-preview/issues"
+  },
+  "homepage": "https://github.com/zonsunny/vscode-graph-preview#readme",
   "keywords": ["mermaid", "graphviz", "plantuml", "diagram", "preview", "ai"],
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Visualization", "Programming Languages"],
