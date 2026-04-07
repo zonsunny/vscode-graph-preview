@@ -8,8 +8,8 @@ import { getConfig } from './config';
 export class EditorWatcher {
   private disposables: vscode.Disposable[] = [];
   private currentBlocks: GraphBlock[] = [];
-  private onBlocksDetected?: (blocks: GraphBlock[]) => void;
-  private onVisibleBlocksChanged?: (blocks: GraphBlock[]) => void;
+  private _onBlocksDetected?: (blocks: GraphBlock[]) => void;
+  private _onVisibleBlocksChanged?: (blocks: GraphBlock[]) => void;
 
   constructor() {
     this.setupListeners();
@@ -40,7 +40,7 @@ export class EditorWatcher {
       vscode.window.onDidChangeTextEditorVisibleRanges(event => {
         if (event.visibleRanges.length > 0) {
           const blocks = getVisibleBlocks(this.currentBlocks, event.visibleRanges[0]);
-          this.onVisibleBlocksChanged?.(blocks);
+          this._onVisibleBlocksChanged?.(blocks);
         }
       })
     );
@@ -57,7 +57,7 @@ export class EditorWatcher {
 
   private detectBlocks(document: vscode.TextDocument): void {
     this.currentBlocks = detectGraphBlocks(document);
-    this.onBlocksDetected?.(this.currentBlocks);
+    this._onBlocksDetected?.(this.currentBlocks);
   }
 
   public getBlocks(): GraphBlock[] {
@@ -69,11 +69,11 @@ export class EditorWatcher {
   }
 
   public onBlocksDetected(callback: (blocks: GraphBlock[]) => void): void {
-    this.onBlocksDetected = callback;
+    this._onBlocksDetected = callback;
   }
 
   public onVisibleBlocksChanged(callback: (blocks: GraphBlock[]) => void): void {
-    this.onVisibleBlocksChanged = callback;
+    this._onVisibleBlocksChanged = callback;
   }
 
   public dispose(): void {

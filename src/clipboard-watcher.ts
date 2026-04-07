@@ -5,8 +5,8 @@ import { detectClipboardContent } from './detector';
 export class ClipboardWatcher {
   private intervalId: ReturnType<typeof setInterval> | undefined;
   private lastContent: string = '';
-  private onClipboardDetected?: (result: { language: GraphLanguage; code: string }) => void;
-  private onAmbiguous?: (candidates: GraphLanguage[], code: string) => void;
+  private _onClipboardDetected?: (result: { language: GraphLanguage; code: string }) => void;
+  private _onAmbiguous?: (candidates: GraphLanguage[], code: string) => void;
   private enabled = true;
 
   constructor() {}
@@ -34,9 +34,9 @@ export class ClipboardWatcher {
         const result = detectClipboardContent(text);
 
         if (result.status === 'success' && result.block) {
-          this.onClipboardDetected?.(result.block);
+          this._onClipboardDetected?.(result.block);
         } else if (result.status === 'ambiguous' && result.candidates) {
-          this.onAmbiguous?.(result.candidates, text.trim());
+          this._onAmbiguous?.(result.candidates, text.trim());
         }
       } catch (err) {
         // Ignore clipboard read errors
@@ -60,11 +60,11 @@ export class ClipboardWatcher {
   }
 
   public onClipboardDetected(callback: (result: { language: GraphLanguage; code: string }) => void): void {
-    this.onClipboardDetected = callback;
+    this._onClipboardDetected = callback;
   }
 
   public onAmbiguous(callback: (candidates: GraphLanguage[], code: string) => void): void {
-    this.onAmbiguous = callback;
+    this._onAmbiguous = callback;
   }
 
   public dispose(): void {
