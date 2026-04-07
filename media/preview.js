@@ -219,70 +219,102 @@
   }
 
   // Export functions
-  function getSvgContent() {
+  async function exportSVG() {
     const content = elements.content;
     if (!content || content.classList.contains('hidden')) {
-      return null;
-    }
-    const svg = content.querySelector('svg');
-    if (svg) {
-      return svg.outerHTML;
-    }
-    // For PlantUML images, we need to convert to SVG
-    const img = content.querySelector('img');
-    if (img) {
-      return null; // Can't export PlantUML img as SVG directly
-    }
-    return null;
-  }
-
-  function exportSVG() {
-    const svgContent = getSvgContent();
-    if (!svgContent) {
-      vscode.postMessage({ type: 'exportError', error: 'No SVG content available' });
+      vscode.postMessage({ type: 'exportError', error: 'No diagram rendered. Please render a diagram first.' });
       return;
     }
-    vscode.postMessage({ type: 'exportSVG', data: svgContent });
+
+    // Check for SVG element (Mermaid, DOT)
+    const svg = content.querySelector('svg');
+    if (svg) {
+      const svgContent = svg.outerHTML;
+      vscode.postMessage({ type: 'exportSVG', data: svgContent });
+      return;
+    }
+
+    // Check for img element (PlantUML)
+    const img = content.querySelector('img');
+    if (img && img.src) {
+      // For PlantUML, fetch the SVG from the server
+      try {
+        const response = await fetch(img.src);
+        const svgText = await response.text();
+        vscode.postMessage({ type: 'exportSVG', data: svgText });
+      } catch (err) {
+        vscode.postMessage({ type: 'exportError', error: 'Failed to fetch PlantUML SVG: ' + err.message });
+      }
+      return;
+    }
+
+    vscode.postMessage({ type: 'exportError', error: 'No exportable content found' });
   }
 
   async function exportPNG() {
     const content = elements.content;
     if (!content || content.classList.contains('hidden')) {
-      vscode.postMessage({ type: 'exportError', error: 'No content available' });
-      return;
-    }
-
-    const svg = content.querySelector('svg');
-    if (!svg) {
-      vscode.postMessage({ type: 'exportError', error: 'Only SVG diagrams can be exported as PNG' });
+      vscode.postMessage({ type: 'exportError', error: 'No diagram rendered. Please render a diagram first.' });
       return;
     }
 
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
 
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = img.width * 2; // 2x for better quality
-        canvas.height = img.height * 2;
-        ctx.scale(2, 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, img.width, img.height);
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
+      // Check for SVG element (Mermaid, DOT)
+      const svg = content.querySelector('svg');
+      if (svg) {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
 
-        const pngData = canvas.toDataURL('image/png');
-        vscode.postMessage({ type: 'exportPNG', data: pngData });
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        vscode.postMessage({ type: 'exportError', error: 'Failed to convert SVG to PNG' });
-      };
-      img.src = url;
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width * 2;
+          canvas.height = img.height * 2;
+          ctx.scale(2, 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, img.width, img.height);
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+
+          const pngData = canvas.toDataURL('image/png');
+          vscode.postMessage({ type: 'exportPNG', data: pngData });
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          vscode.postMessage({ type: 'exportError', error: 'Failed to convert SVG to PNG' });
+        };
+        img.src = url;
+        return;
+      }
+
+      // Check for img element (PlantUML)
+      const img = content.querySelector('img');
+      if (img && img.src) {
+        // For PlantUML, load the image and draw to canvas
+        const imgEl = new Image();
+        imgEl.crossOrigin = 'anonymous';
+        imgEl.onload = () => {
+          canvas.width = imgEl.width * 2;
+          canvas.height = imgEl.height * 2;
+          ctx.scale(2, 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, imgEl.width, imgEl.height);
+          ctx.drawImage(imgEl, 0, 0);
+
+          const pngData = canvas.toDataURL('image/png');
+          vscode.postMessage({ type: 'exportPNG', data: pngData });
+        };
+        imgEl.onerror = () => {
+          vscode.postMessage({ type: 'exportError', error: 'Failed to load PlantUML image' });
+        };
+        imgEl.src = img.src;
+        return;
+      }
+
+      vscode.postMessage({ type: 'exportError', error: 'No exportable content found' });
     } catch (err) {
       vscode.postMessage({ type: 'exportError', error: err.message });
     }
