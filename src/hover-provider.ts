@@ -2,15 +2,8 @@
 import * as vscode from 'vscode';
 import { GraphBlock, GraphLanguage } from './types';
 import { detectGraphBlocks } from './detector';
-import { PreviewPanel } from './preview-panel';
 
 export class GraphHoverProvider implements vscode.HoverProvider {
-  private previewPanel: PreviewPanel;
-
-  constructor(previewPanel: PreviewPanel) {
-    this.previewPanel = previewPanel;
-  }
-
   provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -26,28 +19,29 @@ export class GraphHoverProvider implements vscode.HoverProvider {
       return undefined;
     }
 
-    // Create hover content
-    const hoverContent = this.createHoverContent(block);
-
-    return new vscode.Hover(hoverContent, block.fenceRange);
-  }
-
-  private createHoverContent(block: GraphBlock): vscode.MarkdownString {
+    // Create hover content with clickable link
     const md = new vscode.MarkdownString(undefined, true);
     md.isTrusted = true;
     md.supportHtml = true;
 
-    // Add preview button
     const languageLabel = this.getLanguageLabel(block.language);
-    md.appendMarkdown(`### 📊 ${languageLabel} Diagram Preview\n\n`);
-    md.appendMarkdown(`[Open in Preview Panel](command:graph-preview.openPanel)\n\n`);
-    md.appendMarkdown(`---\n\n`);
+    md.appendMarkdown(`### 📊 ${languageLabel} Diagram\n\n`);
+
+    // Add clickable command link
+    md.appendMarkdown(`[▶ Preview in Panel](command:graph-preview.renderBlock?${encodeURIComponent(JSON.stringify([{
+      id: block.id,
+      language: block.language,
+      code: block.code,
+      range: [block.range.start.line, block.range.end.line],
+      fenceRange: [block.fenceRange.start.line, block.fenceRange.end.line],
+    }]))})\n\n`);
 
     // Add code preview (truncated)
     const codePreview = this.truncateCode(block.code);
+    md.appendMarkdown(`**Preview:**\n\n`);
     md.appendCodeblock(codePreview, block.language === 'dot' ? 'dot' : block.language);
 
-    return md;
+    return new vscode.Hover(md, block.fenceRange);
   }
 
   private getLanguageLabel(language: GraphLanguage): string {
@@ -61,9 +55,9 @@ export class GraphHoverProvider implements vscode.HoverProvider {
     }
   }
 
-  private truncateCode(code: string, maxLength: number = 200): string {
+  private truncateCode(code: string, maxLength: number = 150): string {
     const lines = code.split('\n');
-    if (lines.length <= 6 && code.length <= maxLength) {
+    if (lines.length <= 5 && code.length <= maxLength) {
       return code;
     }
 
@@ -71,7 +65,7 @@ export class GraphHoverProvider implements vscode.HoverProvider {
     const remaining = lines.length - 5;
 
     if (remaining > 0) {
-      return `${firstLines}\n\n... (${remaining} more lines)`;
+      return `${firstLines}\n... (${remaining} more lines)`;
     }
 
     return firstLines;

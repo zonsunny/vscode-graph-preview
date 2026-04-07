@@ -8,19 +8,20 @@ import { GraphHoverProvider } from './hover-provider';
 import { GraphCodeLensProvider } from './codelens-provider';
 import { detectClipboardContent } from './detector';
 import { getConfig } from './config';
-import { showLanguageQuickPick } from './utils';
-import { GraphLanguage } from './types';
+import { GraphBlock } from './types';
 
 let previewPanel: PreviewPanel;
 let editorWatcher: EditorWatcher;
 let clipboardWatcher: ClipboardWatcher;
+let codeLensProvider: GraphCodeLensProvider;
 
 export function activate(context: vscode.ExtensionContext) {
   previewPanel = new PreviewPanel(context.extensionUri);
   editorWatcher = new EditorWatcher();
   clipboardWatcher = new ClipboardWatcher();
+  codeLensProvider = new GraphCodeLensProvider();
 
-  // Register commands
+  // Open panel command
   const openPanelCommand = vscode.commands.registerCommand(
     'graph-preview.openPanel',
     () => {
@@ -28,10 +29,45 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Render specific block command (called from CodeLens)
+  const renderBlockCommand = vscode.commands.registerCommand(
+    'graph-preview.renderBlock',
+    (blockData: any) => {
+      if (!blockData) {
+        previewPanel.show();
+        return;
+      }
+
+      const block: GraphBlock = {
+        id: blockData.id,
+        language: blockData.language,
+        code: blockData.code,
+        range: new vscode.Range(
+          new vscode.Position(blockData.range[0], 0),
+          new vscode.Position(blockData.range[1], Number.MAX_VALUE)
+        ),
+        fenceRange: new vscode.Range(
+          new vscode.Position(blockData.fenceRange[0], 0),
+          new vscode.Position(blockData.fenceRange[1], Number.MAX_VALUE)
+        ),
+      };
+
+      previewPanel.show();
+      previewPanel.render(block);
+    }
+  );
+
   // Export SVG command
   const exportSVGCommand = vscode.commands.registerCommand(
     'graph-preview.exportSVG',
-    async () => {
+    async (block?: GraphBlock) => {
+      if (block) {
+        // Called from CodeLens with specific block
+        previewPanel.show();
+        previewPanel.render(block);
+        // Wait a bit for render to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       previewPanel.requestExport('svg');
     }
   );
@@ -39,31 +75,19 @@ export function activate(context: vscode.ExtensionContext) {
   // Export PNG command
   const exportPNGCommand = vscode.commands.registerCommand(
     'graph-preview.exportPNG',
-    async () => {
+    async (block?: GraphBlock) => {
+      if (block) {
+        // Called from CodeLens with specific block
+        previewPanel.show();
+        previewPanel.render(block);
+        // Wait a bit for render to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       previewPanel.requestExport('png');
     }
   );
 
-  // Register hover provider
-  const hoverProvider = new GraphHoverProvider(previewPanel);
-  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
-    [
-      { language: 'markdown', scheme: '*' },
-      { language: 'plaintext', scheme: '*' },
-    ],
-    hoverProvider
-  );
-
-  // Register CodeLens provider
-  const codeLensProvider = new GraphCodeLensProvider();
-  const codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
-    [
-      { language: 'markdown', scheme: '*' },
-      { language: 'plaintext', scheme: '*' },
-    ],
-    codeLensProvider
-  );
-
+  // Render from clipboard command
   const renderFromClipboardCommand = vscode.commands.registerCommand(
     'graph-preview.renderFromClipboard',
     async () => {
@@ -88,6 +112,24 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register hover provider
+  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
+    [
+      { language: 'markdown', scheme: '*' },
+      { language: 'plaintext', scheme: '*' },
+    ],
+    new GraphHoverProvider(previewPanel)
+  );
+
+  // Register CodeLens provider
+  const codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
+    [
+      { language: 'markdown', scheme: '*' },
+      { language: 'plaintext', scheme: '*' },
+    ],
+    codeLensProvider
+  );
+
   // Setup editor watcher callbacks
   editorWatcher.onBlocksDetected((blocks) => {
     const config = getConfig();
@@ -99,6 +141,9 @@ export function activate(context: vscode.ExtensionContext) {
     } else if (blocks.length === 0) {
       previewPanel.showEmpty();
     }
+
+    // Refresh CodeLenses
+    codeLensProvider.refresh();
   });
 
   // Setup clipboard watcher callbacks
@@ -125,17 +170,8 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // Setup preview panel message handler
-  previewPanel.onMessage(async (message) => {
+  previewPanel.onMessage(async (message: any) => {
     switch (message.type) {
-      case 'languageSelected':
-        // Handle language selection from webview
-        break;
-
-      case 'selectBlock':
-        const blocks = editorWatcher.getBlocks();
-        previewPanel.renderBlockByIndex(message.index, blocks);
-        break;
-
       case 'exportSVG':
         await saveFile(message.data, 'svg');
         break;
@@ -170,7 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
       } else {
         content = Buffer.from(data, 'utf-8');
       }
-      await fs.promises.writeFile(uri.fsPath, content);
+      await fs.writeFile(uri.fsPath, content);
       vscode.window.showInformationMessage(`Exported to ${uri.fsPath}`);
     }
   }
@@ -198,6 +234,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register disposables
   context.subscriptions.push(
     openPanelCommand,
+    renderBlockCommand,
     exportSVGCommand,
     exportPNGCommand,
     renderFromClipboardCommand,
