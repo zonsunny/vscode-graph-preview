@@ -13,9 +13,23 @@
 
 ## Installation
 
-### From VSIX (GitHub Release)
+### From VSCode Marketplace (Recommended)
 
-1. Download `aichat-diagram-copy-preview-0.1.0.vsix` from [Releases](https://github.com/zonsunny/vscode-graph-preview/releases)
+Search in VSCode Extensions:
+```
+AIChat Diagram Copy Preview
+```
+
+Or install via command palette:
+```
+ext install Zonsun.aichat-diagram-copy-preview
+```
+
+[直接安装 →](https://marketplace.visualstudio.com/items?itemName=Zonsun.aichat-diagram-copy-preview)
+
+### From GitHub Release
+
+1. Download `.vsix` from [Releases](https://github.com/zonsunny/vscode-graph-preview/releases)
 2. In VSCode: `Cmd+Shift+P` → "Extensions: Install from VSIX"
 3. Select the downloaded file
 
