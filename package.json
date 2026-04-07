@@ -24,6 +24,14 @@
       {
         "command": "graph-preview.renderFromClipboard",
         "title": "Graph Preview: Render from Clipboard"
+      },
+      {
+        "command": "graph-preview.exportSVG",
+        "title": "Graph Preview: Export as SVG"
+      },
+      {
+        "command": "graph-preview.exportPNG",
+        "title": "Graph Preview: Export as PNG"
       }
     ],
     "configuration": {

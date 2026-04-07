@@ -113,6 +113,14 @@ export class PreviewPanel {
     }
   }
 
+  public requestExport(format: 'svg' | 'png'): void {
+    if (!this.panel) {
+      vscode.window.showWarningMessage('Please open the preview panel first');
+      return;
+    }
+    this.panel.webview.postMessage({ type: `export${format.toUpperCase()}` as any });
+  }
+
   public updateClipboardState(enabled: boolean): void {
     this.clipboardWatching = enabled;
     this.panel?.webview.postMessage({
