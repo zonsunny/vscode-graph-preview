@@ -1,4 +1,4 @@
-# Graph Preview
+# AIChat Diagram Copy Preview
 
 > Real-time preview for Mermaid, Graphviz DOT and PlantUML diagrams in VSCode — perfect companion for AI chat panels.
 
@@ -13,22 +13,22 @@
 
 ## Installation
 
+### From VSIX (GitHub Release)
+
+1. Download `aichat-diagram-copy-preview-0.1.0.vsix` from [Releases](https://github.com/zonsunny/vscode-graph-preview/releases)
+2. In VSCode: `Cmd+Shift+P` → "Extensions: Install from VSIX"
+3. Select the downloaded file
+
 ### From Source
 
 ```bash
-cd /Users/zon/Mine/projects/AIproject/vscode-graph-preview
+git clone https://github.com/zonsunny/vscode-graph-preview.git
+cd vscode-graph-preview
 npm install
 npm run compile
 ```
 
 Then press F5 in VSCode to launch Extension Development Host.
-
-### From VSIX
-
-```bash
-npx vsce package
-code --install-extension graph-preview-0.1.0.vsix
-```
 
 ## Usage
 
@@ -49,21 +49,21 @@ The preview panel will automatically show the rendered diagram.
 
 1. When Copilot Chat or Claude Code outputs a diagram code block
 2. Click the copy button on the code block
-3. Graph Preview automatically shows the rendered diagram
+3. AIChat Diagram Copy Preview automatically shows the rendered diagram
 
 ### Commands
 
-- `Graph Preview: Open Preview Panel` - Open the preview panel
-- `Graph Preview: Render from Clipboard` - Render diagram from clipboard content
+- `AIChat Diagram Copy Preview: Open Preview Panel` - Open the preview panel
+- `AIChat Diagram Copy Preview: Render from Clipboard` - Render diagram from clipboard content
 
 ## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `graph-preview.autoOpen` | `true` | Automatically open preview when a diagram is detected |
-| `graph-preview.watchClipboard` | `true` | Watch clipboard for diagram code |
-| `graph-preview.debounceDelay` | `300` | Debounce delay (ms) for re-detection |
-| `graph-preview.largeDiagramThreshold` | `500` | Node count threshold for large diagram warning |
+| `aichat-diagram-copy-preview.autoOpen` | `true` | Automatically open preview when a diagram is detected |
+| `aichat-diagram-copy-preview.watchClipboard` | `true` | Watch clipboard for diagram code |
+| `aichat-diagram-copy-preview.debounceDelay` | `300` | Debounce delay (ms) for re-detection |
+| `aichat-diagram-copy-preview.largeDiagramThreshold` | `500` | Node count threshold for large diagram warning |
 
 ## Supported Languages
 
@@ -104,7 +104,7 @@ Bob --> Alice: Hi!
 ## Privacy
 
 - Clipboard monitoring only activates when the preview panel is open
-- Can be disabled via `graph-preview.watchClipboard` setting
+- Can be disabled via `aichat-diagram-copy-preview.watchClipboard` setting
 - Only matches diagram code formats, other content is ignored
 - Clipboard content is not stored or logged
 
@@ -121,7 +121,7 @@ npm run compile
 npm run watch
 
 # Package
-npx vsce package
+npx @vscode/vsce package
 ```
 
 ## License
