@@ -4,10 +4,9 @@ src/**
 docs/**
 .gitignore
 **/*.ts
-!media/**/*.js
 tsconfig.json
 esbuild.js
 test-diagrams.md
 .DS_Store
 **/*.map
-node_modules/.cache/**
+node_modules/**

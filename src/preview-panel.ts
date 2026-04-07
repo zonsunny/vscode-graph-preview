@@ -177,13 +177,13 @@ export class PreviewPanel {
       vscode.Uri.joinPath(this.extensionUri, 'media', 'preview.css')
     );
     const mermaidUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'mermaid', 'dist', 'mermaid.min.js')
+      vscode.Uri.joinPath(this.extensionUri, 'media', 'libs', 'mermaid.min.js')
     );
     const vizUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', '@viz-js', 'viz', 'dist', 'viz-global.js')
+      vscode.Uri.joinPath(this.extensionUri, 'media', 'libs', 'viz-global.js')
     );
     const plantumlEncoderUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plantuml-encoder', 'dist', 'plantuml-encoder.min.js')
+      vscode.Uri.joinPath(this.extensionUri, 'media', 'libs', 'plantuml-encoder.min.js')
     );
 
     return `<!DOCTYPE html>
