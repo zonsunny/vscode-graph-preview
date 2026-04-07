@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { PreviewPanel } from './preview-panel';
 import { EditorWatcher } from './editor-watcher';
 import { ClipboardWatcher } from './clipboard-watcher';
+import { GraphHoverProvider } from './hover-provider';
 import { detectClipboardContent } from './detector';
 import { getConfig } from './config';
 import { showLanguageQuickPick } from './utils';
@@ -22,6 +23,16 @@ export function activate(context: vscode.ExtensionContext) {
     () => {
       previewPanel.show();
     }
+  );
+
+  // Register hover provider for supported languages
+  const hoverProvider = new GraphHoverProvider(previewPanel);
+  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
+    [
+      { language: 'markdown', scheme: '*' },
+      { language: 'plaintext', scheme: '*' },
+    ],
+    hoverProvider
   );
 
   const renderFromClipboardCommand = vscode.commands.registerCommand(
@@ -114,6 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     openPanelCommand,
     renderFromClipboardCommand,
+    hoverProviderDisposable,
     previewPanel,
     editorWatcher,
     clipboardWatcher
