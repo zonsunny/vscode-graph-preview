@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 import { PreviewPanel } from './preview-panel';
 import { EditorWatcher } from './editor-watcher';
 import { ClipboardWatcher } from './clipboard-watcher';
@@ -22,6 +24,22 @@ export function activate(context: vscode.ExtensionContext) {
     'graph-preview.openPanel',
     () => {
       previewPanel.show();
+    }
+  );
+
+  // Export SVG command
+  const exportSVGCommand = vscode.commands.registerCommand(
+    'graph-preview.exportSVG',
+    async () => {
+      previewPanel.requestExport('svg');
+    }
+  );
+
+  // Export PNG command
+  const exportPNGCommand = vscode.commands.registerCommand(
+    'graph-preview.exportPNG',
+    async () => {
+      previewPanel.requestExport('png');
     }
   );
 
@@ -96,10 +114,49 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Setup preview panel message handler
   previewPanel.onMessage(async (message) => {
-    if (message.type === 'languageSelected') {
-      // Handle language selection from webview
+    switch (message.type) {
+      case 'languageSelected':
+        // Handle language selection from webview
+        break;
+
+      case 'exportSVG':
+        await saveFile(message.data, 'svg');
+        break;
+
+      case 'exportPNG':
+        await saveFile(message.data, 'png');
+        break;
+
+      case 'exportError':
+        vscode.window.showErrorMessage(`Export failed: ${message.error}`);
+        break;
     }
   });
+
+  async function saveFile(data: string, format: 'svg' | 'png') {
+    const defaultPath = path.join(
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
+      `diagram.${format}`
+    );
+
+    const uri = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file(defaultPath),
+      filters: {
+        [format.toUpperCase()]: [format],
+      },
+    });
+
+    if (uri) {
+      let content: Buffer;
+      if (format === 'png' && data.startsWith('data:image/png;base64,')) {
+        content = Buffer.from(data.split(',')[1], 'base64');
+      } else {
+        content = Buffer.from(data, 'utf-8');
+      }
+      await fs.promises.writeFile(uri.fsPath, content);
+      vscode.window.showInformationMessage(`Exported to ${uri.fsPath}`);
+    }
+  }
 
   // Start clipboard watcher if enabled
   const config = getConfig();
@@ -124,6 +181,8 @@ export function activate(context: vscode.ExtensionContext) {
   // Register disposables
   context.subscriptions.push(
     openPanelCommand,
+    exportSVGCommand,
+    exportPNGCommand,
     renderFromClipboardCommand,
     hoverProviderDisposable,
     previewPanel,

@@ -218,6 +218,76 @@
     }
   }
 
+  // Export functions
+  function getSvgContent() {
+    const content = elements.content;
+    if (!content || content.classList.contains('hidden')) {
+      return null;
+    }
+    const svg = content.querySelector('svg');
+    if (svg) {
+      return svg.outerHTML;
+    }
+    // For PlantUML images, we need to convert to SVG
+    const img = content.querySelector('img');
+    if (img) {
+      return null; // Can't export PlantUML img as SVG directly
+    }
+    return null;
+  }
+
+  function exportSVG() {
+    const svgContent = getSvgContent();
+    if (!svgContent) {
+      vscode.postMessage({ type: 'exportError', error: 'No SVG content available' });
+      return;
+    }
+    vscode.postMessage({ type: 'exportSVG', data: svgContent });
+  }
+
+  async function exportPNG() {
+    const content = elements.content;
+    if (!content || content.classList.contains('hidden')) {
+      vscode.postMessage({ type: 'exportError', error: 'No content available' });
+      return;
+    }
+
+    const svg = content.querySelector('svg');
+    if (!svg) {
+      vscode.postMessage({ type: 'exportError', error: 'Only SVG diagrams can be exported as PNG' });
+      return;
+    }
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width * 2; // 2x for better quality
+        canvas.height = img.height * 2;
+        ctx.scale(2, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, img.width, img.height);
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        const pngData = canvas.toDataURL('image/png');
+        vscode.postMessage({ type: 'exportPNG', data: pngData });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        vscode.postMessage({ type: 'exportError', error: 'Failed to convert SVG to PNG' });
+      };
+      img.src = url;
+    } catch (err) {
+      vscode.postMessage({ type: 'exportError', error: err.message });
+    }
+  }
+
   // Message handler
   window.addEventListener('message', async event => {
     const message = event.data;
@@ -247,6 +317,14 @@
 
       case 'languageSelect':
         showLanguageSelect(message.candidates, message.code);
+        break;
+
+      case 'exportSVG':
+        exportSVG();
+        break;
+
+      case 'exportPNG':
+        exportPNG();
         break;
     }
   });
