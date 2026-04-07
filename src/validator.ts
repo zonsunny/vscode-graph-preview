@@ -31,6 +31,16 @@ export function isValidMermaid(code: string): boolean {
 }
 
 export function isValidDot(code: string): boolean {
+  // First, check if this is Mermaid (to avoid false positives)
+  if (MERMAID_KEYWORDS.test(code)) {
+    return false;
+  }
+
+  // Check if this is PlantUML (has @start markers)
+  if (/@start(uml|ditaa|dot|jcckit|math|salt|tree|wbs|mindmap|gantt|chronology|wire|json|yaml)/.test(code)) {
+    return false;
+  }
+
   // Must have graph/digraph/subgraph keyword, or edge definitions
   // Edge definitions in DOT: a -> b or a -- b (not ->> or -->> which are Mermaid)
   if (/^(strict\s+)?(digraph|graph|subgraph)\b/m.test(code)) {
@@ -49,6 +59,11 @@ export function isValidDot(code: string): boolean {
 }
 
 export function isValidPlantUml(code: string): boolean {
+  // First, check if this is Mermaid (to avoid false positives)
+  if (MERMAID_KEYWORDS.test(code)) {
+    return false;
+  }
+
   const hasStartEnd = /@start(uml|ditaa|dot|jcckit|math|salt|tree|wbs|mindmap|gantt|chronology|wire|json|yaml)/.test(code);
 
   const hasKeywords = /^(actor|participant|usecase|class|interface|enum|abstract|state|activity|partition|rectangle|package|node|folder|frame|cloud|database|storage|agent|artifact|boundary|card|circle|collections|component|control|entity|file|hexagon|label|person|queue|stack|title|skinparam|!define|!include|!function)/m.test(code);
