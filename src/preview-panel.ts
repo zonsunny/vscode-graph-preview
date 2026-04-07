@@ -147,7 +147,7 @@ export class PreviewPanel {
       vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'mermaid', 'dist', 'mermaid.min.js')
     );
     const vizUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', '@viz-js', 'viz', 'lib', 'viz.js')
+      vscode.Uri.joinPath(this.extensionUri, 'node_modules', '@viz-js', 'viz', 'dist', 'viz-global.js')
     );
     const plantumlEncoderUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plantuml-encoder', 'dist', 'plantuml-encoder.min.js')
@@ -158,6 +158,7 @@ export class PreviewPanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';">
   <title>Graph Preview</title>
   <link rel="stylesheet" href="${cssUri}">
 </head>

@@ -79,6 +79,9 @@
 
   async function renderDot(code, id) {
     try {
+      if (typeof Viz === 'undefined') {
+        throw new Error('Viz.js library not loaded. Please reload the preview panel.');
+      }
       if (!state.vizInstance) {
         state.vizInstance = await Viz.instance();
       }
